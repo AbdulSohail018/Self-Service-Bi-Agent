@@ -1,0 +1,91 @@
+examples:
+  - question: "Show me attrition trends for Q2 in North America vs EMEA"
+    sql: |
+      SELECT 
+          r.region_name,
+          DATE_TRUNC('month', ae.termination_date) as month,
+          COUNT(*) as terminations,
+          COUNT(*) * 100.0 / LAG(COUNT(*)) OVER (PARTITION BY r.region_name ORDER BY DATE_TRUNC('month', ae.termination_date)) - 100 as growth_rate_pct
+      FROM marts.people.fct_attrition_events ae
+      JOIN marts.people.dim_employees e ON ae.employee_id = e.employee_id  
+      JOIN seeds.hr_regions r ON e.region_id = r.region_id
+      WHERE ae.termination_date >= '2024-04-01' 
+        AND ae.termination_date < '2024-07-01'
+        AND r.region_name IN ('North America', 'EMEA')
+      GROUP BY r.region_name, DATE_TRUNC('month', ae.termination_date)
+      ORDER BY month, r.region_name
+      LIMIT 1000;
+
+  - question: "What's the current headcount by department?"
+    sql: |
+      SELECT 
+          e.department,
+          COUNT(*) as current_headcount,
+          ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 2) as pct_of_total
+      FROM marts.people.dim_employees e
+      WHERE e.status = 'Active'
+      GROUP BY e.department
+      ORDER BY current_headcount DESC
+      LIMIT 1000;
+
+  - question: "Show attrition rate by tenure groups for the last 12 months"
+    sql: |
+      SELECT 
+          CASE 
+              WHEN e.tenure_years < 1 THEN '< 1 year'
+              WHEN e.tenure_years < 3 THEN '1-3 years' 
+              WHEN e.tenure_years < 5 THEN '3-5 years'
+              ELSE '5+ years'
+          END as tenure_group,
+          COUNT(ae.employee_id) as terminations,
+          COUNT(DISTINCT e.employee_id) as total_employees,
+          ROUND(COUNT(ae.employee_id) * 100.0 / COUNT(DISTINCT e.employee_id), 2) as attrition_rate_pct
+      FROM marts.people.dim_employees e
+      LEFT JOIN marts.people.fct_attrition_events ae 
+          ON e.employee_id = ae.employee_id 
+          AND ae.termination_date >= CURRENT_DATE - INTERVAL '12 months'
+      GROUP BY tenure_group
+      ORDER BY attrition_rate_pct DESC
+      LIMIT 1000;
+
+  - question: "Which regions have the highest hiring activity this quarter?"
+    sql: |
+      SELECT 
+          r.region_name,
+          COUNT(*) as hires_count,
+          ROUND(AVG(e.salary), 0) as avg_starting_salary
+      FROM marts.people.dim_employees e
+      JOIN seeds.hr_regions r ON e.region_id = r.region_id
+      WHERE e.hire_date >= DATE_TRUNC('quarter', CURRENT_DATE)
+      GROUP BY r.region_name
+      ORDER BY hires_count DESC
+      LIMIT 1000;
+
+  - question: "Show me monthly attrition trends for the past year"
+    sql: |
+      SELECT 
+          DATE_TRUNC('month', ae.termination_date) as month,
+          COUNT(*) as terminations,
+          LAG(COUNT(*)) OVER (ORDER BY DATE_TRUNC('month', ae.termination_date)) as prev_month_terminations,
+          ROUND((COUNT(*) - LAG(COUNT(*)) OVER (ORDER BY DATE_TRUNC('month', ae.termination_date))) * 100.0 / 
+                LAG(COUNT(*)) OVER (ORDER BY DATE_TRUNC('month', ae.termination_date)), 1) as month_over_month_change_pct
+      FROM marts.people.fct_attrition_events ae
+      WHERE ae.termination_date >= CURRENT_DATE - INTERVAL '12 months'
+      GROUP BY DATE_TRUNC('month', ae.termination_date)
+      ORDER BY month
+      LIMIT 1000;
+
+  - question: "What's the average salary by department and gender?"
+    sql: |
+      SELECT 
+          e.department,
+          e.gender,
+          COUNT(*) as employee_count,
+          ROUND(AVG(e.salary), 0) as avg_salary,
+          ROUND(MIN(e.salary), 0) as min_salary,
+          ROUND(MAX(e.salary), 0) as max_salary
+      FROM marts.people.dim_employees e
+      WHERE e.status = 'Active'
+      GROUP BY e.department, e.gender
+      ORDER BY e.department, e.gender
+      LIMIT 1000;

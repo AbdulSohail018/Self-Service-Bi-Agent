@@ -1,0 +1,175 @@
+version: 2
+
+models:
+  - name: stg_hr_employees
+    description: "Staging model for employee data with basic transformations"
+    columns:
+      - name: employee_id
+        description: "Unique identifier for each employee"
+        tests:
+          - unique
+          - not_null
+      - name: email
+        description: "Employee email address"
+        tests:
+          - unique
+          - not_null
+      - name: hire_date
+        description: "Date when employee was hired"
+        tests:
+          - not_null
+      - name: salary
+        description: "Annual salary in USD"
+        tests:
+          - not_null
+          - accepted_values:
+              values: []
+              quote: false
+              severity: warn
+              config:
+                where: "salary < 30000 or salary > 500000"
+      - name: status
+        description: "Current employment status"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Active', 'Terminated', 'On Leave']
+
+  - name: stg_hr_regions
+    description: "Staging model for regional data"
+    columns:
+      - name: region_id
+        description: "Unique identifier for each region"
+        tests:
+          - unique
+          - not_null
+      - name: region_name
+        description: "Full name of the region"
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_hr_attrition_events
+    description: "Staging model for employee attrition events"
+    columns:
+      - name: event_id
+        description: "Unique identifier for each attrition event"
+        tests:
+          - unique
+          - not_null
+      - name: employee_id
+        description: "Employee who left the company"
+        tests:
+          - not_null
+      - name: termination_date
+        description: "Date of employee termination"
+        tests:
+          - not_null
+
+  - name: dim_employees
+    description: "Employee dimension table with enriched data"
+    columns:
+      - name: employee_id
+        description: "Unique identifier for each employee"
+        tests:
+          - unique
+          - not_null
+      - name: region_id
+        description: "Region where employee is located"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_hr_regions')
+              field: region_id
+      - name: manager_id
+        description: "Employee ID of direct manager"
+        tests:
+          - relationships:
+              to: ref('dim_employees')
+              field: employee_id
+              config:
+                where: "manager_id is not null"
+      - name: tenure_years
+        description: "Years of service with the company"
+        tests:
+          - not_null
+          - accepted_values:
+              values: []
+              quote: false
+              severity: warn
+              config:
+                where: "tenure_years < 0 or tenure_years > 50"
+
+  - name: fct_attrition_events
+    description: "Fact table for employee attrition events"
+    columns:
+      - name: event_id
+        description: "Unique identifier for each attrition event"
+        tests:
+          - unique
+          - not_null
+      - name: employee_id
+        description: "Employee who left the company"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_employees')
+              field: employee_id
+      - name: termination_date
+        description: "Date of employee termination"
+        tests:
+          - not_null
+      - name: tenure_at_termination_years
+        description: "Years of service when employee left"
+        tests:
+          - not_null
+          - accepted_values:
+              values: []
+              quote: false
+              severity: warn
+              config:
+                where: "tenure_at_termination_years < 0 or tenure_at_termination_years > 50"
+
+# Data quality tests across models
+tests:
+  - name: assert_positive_tenure
+    description: "Ensure all active employees have positive tenure"
+    sql: |
+      select *
+      from {{ ref('dim_employees') }}
+      where is_active = true
+        and tenure_years < 0
+
+  - name: assert_reasonable_salary_ranges
+    description: "Check for salary outliers"
+    sql: |
+      select *
+      from {{ ref('dim_employees') }}
+      where salary < 30000 
+         or salary > 500000
+
+  - name: assert_termination_after_hire
+    description: "Ensure termination date is after hire date"
+    sql: |
+      select *
+      from {{ ref('fct_attrition_events') }}
+      where termination_date <= hire_date
+
+  - name: assert_manager_hierarchy
+    description: "Check for circular manager relationships"
+    sql: |
+      with recursive manager_chain as (
+        select employee_id, manager_id, 1 as level
+        from {{ ref('dim_employees') }}
+        where manager_id is not null
+        
+        union all
+        
+        select mc.employee_id, e.manager_id, mc.level + 1
+        from manager_chain mc
+        join {{ ref('dim_employees') }} e on mc.manager_id = e.employee_id
+        where e.manager_id is not null and mc.level < 10
+      )
+      select employee_id
+      from manager_chain
+      where manager_id = employee_id

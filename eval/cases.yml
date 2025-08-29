@@ -1,0 +1,111 @@
+test_cases:
+  - id: "attrition_q2_na_vs_emea"
+    question: "Show me attrition trends for Q2 in North America vs EMEA"
+    expected_tables: ["marts.people.fct_attrition_events", "marts.people.dim_employees"]
+    expected_columns: ["region_name", "termination_date", "month"]
+    expected_aggregations: ["COUNT"]
+    expected_filters: ["termination_date"]
+    category: "attrition_analysis"
+    difficulty: "medium"
+    
+  - id: "headcount_by_department"
+    question: "What's the current headcount by department?"
+    expected_tables: ["marts.people.dim_employees"]
+    expected_columns: ["department", "current_headcount"]
+    expected_aggregations: ["COUNT"]
+    expected_filters: ["status", "is_active"]
+    category: "workforce_metrics"
+    difficulty: "easy"
+    
+  - id: "attrition_by_tenure"
+    question: "Show attrition rate by tenure groups for the last 12 months"
+    expected_tables: ["marts.people.fct_attrition_events", "marts.people.dim_employees"]
+    expected_columns: ["tenure_group", "attrition_rate", "terminations"]
+    expected_aggregations: ["COUNT"]
+    expected_filters: ["termination_date"]
+    category: "attrition_analysis"
+    difficulty: "hard"
+    
+  - id: "hiring_activity_by_region"
+    question: "Which regions have the highest hiring activity this quarter?"
+    expected_tables: ["marts.people.dim_employees"]
+    expected_columns: ["region_name", "hires_count"]
+    expected_aggregations: ["COUNT"]
+    expected_filters: ["hire_date"]
+    category: "hiring_analysis"
+    difficulty: "medium"
+    
+  - id: "salary_by_department_gender"
+    question: "What's the average salary by department and gender?"
+    expected_tables: ["marts.people.dim_employees"]
+    expected_columns: ["department", "gender", "avg_salary"]
+    expected_aggregations: ["AVG", "COUNT"]
+    expected_filters: ["is_active"]
+    category: "compensation_analysis"
+    difficulty: "medium"
+    
+  - id: "monthly_attrition_trends"
+    question: "Show me monthly attrition trends for the past year"
+    expected_tables: ["marts.people.fct_attrition_events"]
+    expected_columns: ["month", "terminations", "month_over_month_change"]
+    expected_aggregations: ["COUNT"]
+    expected_filters: ["termination_date"]
+    category: "attrition_analysis"
+    difficulty: "hard"
+    
+  - id: "top_attrition_reasons"
+    question: "What are the top reasons for employee departures this year?"
+    expected_tables: ["marts.people.fct_attrition_events"]
+    expected_columns: ["reason_category", "termination_count"]
+    expected_aggregations: ["COUNT"]
+    expected_filters: ["termination_date"]
+    category: "attrition_analysis"
+    difficulty: "easy"
+    
+  - id: "tenure_distribution"
+    question: "How is our workforce distributed by tenure categories?"
+    expected_tables: ["marts.people.dim_employees"]
+    expected_columns: ["tenure_category", "employee_count", "percentage"]
+    expected_aggregations: ["COUNT"]
+    expected_filters: ["is_active"]
+    category: "workforce_metrics"
+    difficulty: "medium"
+    
+  - id: "high_risk_departures"
+    question: "Show me employees who left within their first year by department"
+    expected_tables: ["marts.people.fct_attrition_events"]
+    expected_columns: ["department", "early_departures", "tenure_at_termination"]
+    expected_aggregations: ["COUNT"]
+    expected_filters: ["tenure_at_termination_years"]
+    category: "retention_risk"
+    difficulty: "medium"
+    
+  - id: "manager_span_control"
+    question: "How many direct reports does each manager have?"
+    expected_tables: ["marts.people.dim_employees"]
+    expected_columns: ["manager_name", "direct_reports"]
+    expected_aggregations: ["COUNT"]
+    expected_filters: ["is_active", "manager_id"]
+    category: "organizational_structure"
+    difficulty: "easy"
+
+validation_rules:
+  - rule_type: "sql_safety"
+    description: "Only SELECT statements allowed"
+    pattern: "^\\s*SELECT"
+    
+  - rule_type: "row_limit"
+    description: "Must include LIMIT clause"
+    pattern: "LIMIT\\s+\\d+"
+    
+  - rule_type: "schema_access"
+    description: "Only allowed schemas accessed"
+    allowed_schemas: ["marts.people", "staging", "seeds"]
+    
+  - rule_type: "column_existence"
+    description: "Referenced columns must exist in schema"
+    check_schema_index: true
+    
+  - rule_type: "aggregation_logic"
+    description: "Aggregations should be logically sound"
+    check_group_by: true

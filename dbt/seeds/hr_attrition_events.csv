@@ -1,0 +1,11 @@
+event_id,employee_id,termination_date,termination_type,reason_category,voluntary,exit_interview_completed
+ATT001,EMP016,2023-05-15,Voluntary,Career Growth,true,true
+ATT002,EMP018,2023-08-22,Voluntary,Compensation,true,true
+ATT003,EMP025,2023-12-01,Involuntary,Performance,false,false
+ATT004,EMP032,2024-01-18,Voluntary,Relocation,true,true
+ATT005,EMP045,2024-03-10,Voluntary,Work-Life Balance,true,true
+ATT006,EMP051,2024-04-25,Involuntary,Restructuring,false,true
+ATT007,EMP063,2024-06-15,Voluntary,Better Opportunity,true,true
+ATT008,EMP072,2024-07-30,Voluntary,Compensation,true,false
+ATT009,EMP081,2024-09-05,Involuntary,Performance,false,true
+ATT010,EMP089,2024-10-12,Voluntary,Career Growth,true,true

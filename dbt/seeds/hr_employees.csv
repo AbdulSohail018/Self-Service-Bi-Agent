@@ -1,0 +1,26 @@
+employee_id,first_name,last_name,email,department,job_title,hire_date,birth_date,gender,salary,manager_id,region_id,status
+EMP001,John,Smith,john.smith@company.com,Engineering,Senior Software Engineer,2020-03-15,1985-07-22,M,95000,MGR001,NA,Active
+EMP002,Sarah,Johnson,sarah.johnson@company.com,Marketing,Marketing Manager,2019-08-01,1987-11-03,F,75000,MGR002,NA,Active
+EMP003,Michael,Brown,michael.brown@company.com,Sales,Sales Representative,2021-01-10,1990-02-14,M,65000,MGR003,NA,Active
+EMP004,Emily,Davis,emily.davis@company.com,HR,HR Specialist,2020-05-20,1988-09-30,F,58000,MGR004,NA,Active
+EMP005,David,Wilson,david.wilson@company.com,Engineering,Software Engineer,2021-06-01,1992-04-18,M,78000,EMP001,NA,Active
+EMP006,Lisa,Anderson,lisa.anderson@company.com,Finance,Financial Analyst,2019-11-15,1989-12-05,F,62000,MGR005,EMEA,Active
+EMP007,James,Taylor,james.taylor@company.com,Engineering,DevOps Engineer,2020-09-10,1986-06-28,M,82000,EMP001,EMEA,Active
+EMP008,Jennifer,Martinez,jennifer.martinez@company.com,Marketing,Content Specialist,2021-03-25,1991-01-15,F,55000,EMP002,EMEA,Active
+EMP009,Robert,Garcia,robert.garcia@company.com,Sales,Senior Sales Rep,2018-12-01,1983-08-12,M,85000,MGR003,EMEA,Active
+EMP010,Amanda,Rodriguez,amanda.rodriguez@company.com,HR,Recruiter,2020-07-30,1989-03-25,F,52000,EMP004,EMEA,Active
+EMP011,Christopher,Lee,christopher.lee@company.com,Engineering,Frontend Developer,2021-04-15,1993-10-08,M,72000,EMP001,APAC,Active
+EMP012,Michelle,Thompson,michelle.thompson@company.com,Finance,Senior Analyst,2019-02-28,1985-05-17,F,68000,MGR005,APAC,Active
+EMP013,Kevin,White,kevin.white@company.com,Sales,Account Executive,2020-10-05,1987-11-22,M,70000,MGR003,APAC,Active
+EMP014,Rachel,Harris,rachel.harris@company.com,Marketing,Digital Marketer,2021-05-12,1990-07-11,F,60000,EMP002,APAC,Active
+EMP015,Daniel,Clark,daniel.clark@company.com,Engineering,Backend Developer,2019-06-20,1988-12-30,M,80000,EMP001,APAC,Active
+EMP016,Ashley,Lewis,ashley.lewis@company.com,HR,Benefits Coordinator,2020-08-14,1991-04-02,F,48000,EMP004,NA,Terminated
+EMP017,Matthew,Walker,matthew.walker@company.com,Finance,Budget Analyst,2021-01-25,1992-09-19,M,58000,MGR005,NA,Active
+EMP018,Stephanie,Hall,stephanie.hall@company.com,Marketing,Brand Manager,2019-09-30,1986-01-28,F,72000,EMP002,EMEA,Terminated
+EMP019,Anthony,Allen,anthony.allen@company.com,Sales,Inside Sales Rep,2020-12-08,1989-06-14,M,55000,MGR003,EMEA,Active
+EMP020,Melissa,Young,melissa.young@company.com,Engineering,QA Engineer,2021-02-18,1990-10-25,F,65000,EMP001,APAC,Active
+MGR001,Thomas,Moore,thomas.moore@company.com,Engineering,Engineering Manager,2018-01-15,1980-03-10,M,120000,,NA,Active
+MGR002,Patricia,Jackson,patricia.jackson@company.com,Marketing,Marketing Director,2017-05-20,1979-08-22,F,110000,,NA,Active
+MGR003,Richard,Martin,richard.martin@company.com,Sales,Sales Director,2017-11-01,1978-12-05,M,125000,,EMEA,Active
+MGR004,Linda,Thompson,linda.thompson@company.com,HR,HR Director,2018-07-10,1981-02-18,F,105000,,EMEA,Active
+MGR005,William,Garcia,william.garcia@company.com,Finance,Finance Director,2018-03-25,1977-09-30,M,115000,,APAC,Active

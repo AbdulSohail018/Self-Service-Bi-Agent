@@ -1,0 +1,38 @@
+# Copy this file to ~/.dbt/profiles.yml and configure for your warehouse
+# This is a template - do not commit the actual profiles.yml with credentials
+
+bi_assistant:
+  target: dev
+  outputs:
+    dev:
+      # DuckDB (Local Development)
+      type: duckdb
+      path: '../.data/local.duckdb'
+      schema: main
+      threads: 4
+      
+    # Uncomment and configure for Snowflake
+    # snowflake:
+    #   type: snowflake
+    #   account: <your_account>
+    #   user: <your_username>
+    #   password: <your_password>  # or use private_key_path
+    #   role: <your_role>
+    #   database: <your_database>
+    #   warehouse: <your_warehouse>
+    #   schema: <your_schema>
+    #   threads: 4
+    #   keepalives_idle: 30
+    #   search_path: '<your_schema>'
+    
+    # Uncomment and configure for BigQuery
+    # bigquery:
+    #   type: bigquery
+    #   method: service-account
+    #   project: <your_project_id>
+    #   dataset: <your_dataset>
+    #   keyfile: <path_to_service_account_json>
+    #   threads: 4
+    #   timeout_seconds: 300
+    #   location: US
+    #   priority: interactive

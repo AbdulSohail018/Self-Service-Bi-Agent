@@ -1,0 +1,121 @@
+name: Python Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9, 3.10, 3.11]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Create test environment
+      run: |
+        cp .env.example .env
+        mkdir -p .data
+        echo "WAREHOUSE=DUCKDB" >> .env
+        echo "DUCKDB_PATH=.data/test.duckdb" >> .env
+        echo "LLM_PROVIDER=ollama" >> .env
+        echo "VECTOR_DIR=.data/test_vector" >> .env
+
+    - name: Bootstrap test database
+      run: |
+        python scripts/bootstrap_duckdb.py
+
+    - name: Lint with ruff
+      run: |
+        ruff check .
+
+    - name: Format check with black
+      run: |
+        black --check .
+
+    - name: Import sort check with isort
+      run: |
+        isort --check-only .
+
+    - name: Type check with mypy (optional)
+      continue-on-error: true
+      run: |
+        pip install mypy
+        mypy analytics/ app/ --ignore-missing-imports
+
+    - name: Run tests with pytest
+      run: |
+        pytest tests/ -v --cov=analytics --cov=app --cov-report=xml --cov-report=html
+
+    - name: Run evaluation harness
+      run: |
+        python eval/evaluator.py --cases-file eval/cases.yml
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+    - name: Archive test artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-artifacts-${{ matrix.python-version }}
+        path: |
+          htmlcov/
+          eval/results.db
+          .data/test.duckdb
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+
+    - name: Install security tools
+      run: |
+        pip install safety bandit
+
+    - name: Run safety check
+      run: |
+        safety check -r requirements.txt
+
+    - name: Run bandit security linter
+      run: |
+        bandit -r analytics/ app/ -f json -o bandit-report.json
+
+    - name: Upload security artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json

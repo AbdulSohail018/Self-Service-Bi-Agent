@@ -1,0 +1,177 @@
+version: 2
+
+metrics:
+  - name: attrition_rate
+    label: Attrition Rate
+    model: ref('fct_attrition_events')
+    description: >
+      Percentage of employees who left the company in a given period.
+      Calculated as (number of terminations / average headcount) * 100.
+    
+    calculation_method: count
+    expression: event_id
+    
+    timestamp: termination_date
+    time_grains: [day, week, month, quarter, year]
+    
+    dimensions:
+      - department
+      - region_name
+      - voluntary_flag
+      - reason_category
+      - tenure_category_at_termination
+      - salary_band
+    
+    filters:
+      - field: termination_date
+        operator: '>='
+        value: '2023-01-01'
+    
+    meta:
+      business_definition: "Key metric for measuring employee retention and organizational health"
+      calculation_logic: "Total terminations in period divided by average headcount"
+      
+  - name: headcount
+    label: Employee Headcount
+    model: ref('dim_employees')
+    description: >
+      Total number of active employees at a point in time.
+      Includes all employees with 'Active' status.
+    
+    calculation_method: count
+    expression: employee_id
+    
+    timestamp: hire_date
+    time_grains: [day, week, month, quarter, year]
+    
+    dimensions:
+      - department
+      - region_name
+      - job_title
+      - salary_band
+      - tenure_category
+      - age_category
+      - gender
+    
+    filters:
+      - field: is_active
+        operator: '='
+        value: 'true'
+    
+    meta:
+      business_definition: "Total active workforce count"
+      calculation_logic: "Count of employees where status = 'Active'"
+      
+  - name: hires
+    label: New Hires
+    model: ref('dim_employees')
+    description: >
+      Number of new employees hired in a given period.
+      Based on hire_date for active employees.
+    
+    calculation_method: count
+    expression: employee_id
+    
+    timestamp: hire_date
+    time_grains: [day, week, month, quarter, year]
+    
+    dimensions:
+      - department
+      - region_name
+      - job_title
+      - salary_band
+      - age_category
+      - gender
+    
+    filters:
+      - field: hire_date
+        operator: '>='
+        value: '2023-01-01'
+    
+    meta:
+      business_definition: "New employee additions to the organization"
+      calculation_logic: "Count of employees by hire_date in specified period"
+      
+  - name: terminations
+    label: Employee Terminations
+    model: ref('fct_attrition_events')
+    description: >
+      Number of employees who left the company in a given period.
+      Includes both voluntary and involuntary terminations.
+    
+    calculation_method: count
+    expression: event_id
+    
+    timestamp: termination_date
+    time_grains: [day, week, month, quarter, year]
+    
+    dimensions:
+      - department
+      - region_name
+      - voluntary_flag
+      - termination_type
+      - reason_category
+      - tenure_category_at_termination
+      - salary_band
+    
+    filters:
+      - field: termination_date
+        operator: '>='
+        value: '2023-01-01'
+    
+    meta:
+      business_definition: "Employee departures from the organization"
+      calculation_logic: "Count of termination events by termination_date"
+      
+  - name: avg_tenure
+    label: Average Employee Tenure
+    model: ref('dim_employees')
+    description: >
+      Average length of employment for active employees.
+      Calculated in years from hire_date to current date.
+    
+    calculation_method: average
+    expression: tenure_years
+    
+    timestamp: hire_date
+    time_grains: [month, quarter, year]
+    
+    dimensions:
+      - department
+      - region_name
+      - job_title
+      - salary_band
+      - age_category
+      - gender
+    
+    filters:
+      - field: is_active
+        operator: '='
+        value: 'true'
+    
+    meta:
+      business_definition: "Average time employees have been with the company"
+      calculation_logic: "Mean of tenure_years for all active employees"
+      
+  - name: retention_rate
+    label: Employee Retention Rate
+    model: ref('dim_employees')
+    description: >
+      Percentage of employees retained over a specific period.
+      Calculated as 100 - attrition_rate.
+    
+    calculation_method: derived
+    expression: "100 - {{ metric('attrition_rate') }}"
+    
+    timestamp: hire_date
+    time_grains: [month, quarter, year]
+    
+    dimensions:
+      - department
+      - region_name
+      - tenure_category
+      - salary_band
+    
+    meta:
+      business_definition: "Percentage of employees who remain with the organization"
+      calculation_logic: "100 minus the attrition rate for the same period"

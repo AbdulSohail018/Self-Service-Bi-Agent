@@ -1,0 +1,75 @@
+name: 'bi_assistant'
+version: '1.0.0'
+config-version: 2
+
+# This setting configures which "profile" dbt uses for this project.
+profile: 'bi_assistant'
+
+# These configurations specify where dbt should look for different types of files.
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Configuring models
+models:
+  bi_assistant:
+    # Applies to all files under models/staging/
+    staging:
+      +materialized: view
+      +docs:
+        node_color: "#F7931E"
+    # Applies to all files under models/marts/
+    marts:
+      +materialized: table
+      +docs:
+        node_color: "#80CE5D"
+      people:
+        +materialized: table
+
+# Configuring seeds
+seeds:
+  bi_assistant:
+    +schema: seeds
+    hr_employees:
+      +column_types:
+        employee_id: varchar(50)
+        hire_date: date
+        birth_date: date
+        salary: integer
+    hr_regions:
+      +column_types:
+        region_id: varchar(10)
+        region_name: varchar(100)
+    hr_attrition_events:
+      +column_types:
+        event_id: varchar(50)
+        employee_id: varchar(50)
+        termination_date: date
+
+# Configuring tests
+tests:
+  +store_failures: true
+  +warn_if: ">= 1"
+  +error_if: ">= 5"
+
+# Documentation
+docs:
+  generate: true
+
+# Variables for flexible configuration
+vars:
+  # Date range for analysis (can be overridden)
+  start_date: '2023-01-01'
+  end_date: '2024-12-31'
+  
+  # Business rules
+  min_tenure_days: 90
+  active_status: 'Active'
